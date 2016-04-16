@@ -61,9 +61,7 @@ parser.add_argument(u'--version',
                     action=u'version',
                     version=u'klag 1.0.0')
 
-#args = parser.parse_args("-b vagrant-ist-01:9092 -d -p -s 2 -g {\"pipe-twitter\":[\"pipe.extract-twitter\"]}".split())
-args = parser.parse_args("-b vagrant-ist-01:9092 -d -h -p -s 2".split())
-#args = parser.parse_args()
+args = parser.parse_args()
 
 logging.basicConfig(level=args.log_level.upper())
 
