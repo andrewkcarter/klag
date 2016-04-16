@@ -53,8 +53,45 @@ To see all consumer groups that are connected and their topics, just run the `kl
 $ klag
 ```
 
-If your broker is not local, specify the `-b` flag.
+If your broker is not local, specify the `--brokers` flag.
 ```
 $ klag -b <remote-broker>
+Group     Topic                                                        Remaining
+================================================================================
+my-group                                                                [STABLE]
+          topic-1                                                             21
+          topic-2                                                             15
 ```
 
+To see data about the consumption of individual topic partitions, add the `--partitions` flag.
+```
+$ klag -p
+Group     Topic     Partition       Earliest    Consumed      Latest   Remaining
+================================================================================
+my-group                                                                [STABLE]
+          topic-1                                                             21
+                    0                  52152      460290      460298           8
+                    1                  52538      460963      460968           5
+                    2                  52291      460805      460813           8
+          topic-2                                                             15
+                    0                      0      187180      187182           2
+                    1                      0      187979      187984           5
+                    2                      0      187026      187034           8
+```
+
+To focus on specific consumer groups and topics, use the `--groups` parameter.
+```
+$ klag -g '{"my-group":["topic-2"]}'
+Group     Topic                                                        Remaining
+================================================================================
+my-group                                                                [STABLE]
+          topic-2                                                             15
+```
+
+To output the information in a more machine readable format, use the `--format` parameter. This is ideal for producing records for a monitoring system.
+```
+$ klag -g '{"my-group":["topic-2"]}' -f json-discrete
+{"consumer_lag": 15, "group": "my-group", "topic": "topic-2", "state": "Stable"}
+```
+
+To run `klag` continuously you may specify the `--seconds` parameter, which will print the consumer data at the specified interval. Running continuously in conjunction with the `--discover` flag will add consumer groups when they connect, and remove them when they disconnect. If you wish to keep monitoring the topics for consumer groups that have disconnected, enable caching with the `--cache` flag.
