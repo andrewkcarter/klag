@@ -14,7 +14,7 @@ def parse_groups(value):
     return json.loads(value, encoding='UTF-8')
 
 parser = argparse.ArgumentParser(
-        description='Kafka 0.9.+ consumer monitoring.',
+        description='Kafka 0.8.2+ consumer monitoring.',
         epilog="http://www.github.com/andrewkcarter/klag")
 parser.add_argument('-b', '--brokers',
                     help="Comma separated list of Kafka brokers",
@@ -62,8 +62,8 @@ parser.add_argument(u'--version',
                     version=u'klag 1.0.0')
 
 #args = parser.parse_args("-b vagrant-ist-01:9092 -d -p -s 2 -g {\"pipe-twitter\":[\"pipe.extract-twitter\"]}".split())
-#args = parser.parse_args("-b vagrant-ist-01:9092 -d -p -s 2".split())
-args = parser.parse_args()
+args = parser.parse_args("-b vagrant-ist-01:9092 -d -h -p -s 2".split())
+#args = parser.parse_args()
 
 logging.basicConfig(level=args.log_level.upper())
 
