@@ -1,5 +1,7 @@
 .. image:: https://img.shields.io/github/license/andrewkcarter/klag.svg?maxAge=2592000
   :target: https://github.com/andrewkcarter/klag/blob/master/LICENSE
+.. image:: https://img.shields.io/pypi/dw/klag.svg?maxAge=2592000
+  :target: https://pypi.python.org/pypi/klag
 
 klag
 ====

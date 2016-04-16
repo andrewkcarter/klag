@@ -16,7 +16,7 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
     README = readme.read()
 
 setup(name='klag',
-      description='A Kafka consumer monitoring CLI.',
+      description='A Kafka consumer group monitoring CLI.',
       long_description=README,
       license='MIT',
       author='Andrew Carter',
