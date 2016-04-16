@@ -20,6 +20,12 @@ Installation
 
 ::
 
+    pip install klag
+
+or
+
+::
+
     python setup.py install
 
 Examples

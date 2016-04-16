@@ -34,6 +34,14 @@ setup(name='klag',
           'kafka-python>=1.0.2'
       ],
       classifiers=[
+          "Environment :: Console",
           "Intended Audience :: Developers",
+          "Intended Audience :: System Administrators",
           "License :: OSI Approved :: MIT License",
+          "Topic :: System",
+          "Topic :: System :: Distributed Computing",
+          "Topic :: System :: Logging",
+          "Topic :: System :: Monitoring",
+          "Topic :: System :: Systems Administration",
+          "Topic :: Utilities"
       ])
