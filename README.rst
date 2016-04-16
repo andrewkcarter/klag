@@ -1,3 +1,6 @@
+.. image:: https://img.shields.io/github/license/andrewkcarter/klag.svg?maxAge=2592000
+  :target: https://github.com/andrewkcarter/klag/blob/master/LICENSE
+
 klag
 ====
 
