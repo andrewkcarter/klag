@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+from klag.__version__ import __version__
 from klag import KafkaConsumerLag
 
 import sys
@@ -59,7 +60,7 @@ parser.add_argument('--log-level',
                     default='ERROR')
 parser.add_argument(u'--version',
                     action=u'version',
-                    version=u'klag 1.0.0')
+                    version=__version__)
 
 args = parser.parse_args()
 
