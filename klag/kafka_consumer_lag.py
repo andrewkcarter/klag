@@ -2,11 +2,54 @@ import itertools
 import copy
 
 from kafka.client_async import KafkaClient
-from kafka.protocol.admin import ListGroupsRequest, DescribeGroupsRequest
-from kafka.protocol.commit import OffsetFetchRequest_v1, GroupCoordinatorRequest
-from kafka.protocol.group import MemberAssignment
-from kafka.protocol.offset import OffsetRequest
+from kafka.protocol.admin import ListGroupsRequest, DescribeGroupsRequest, \
+    ListGroupsResponse, DescribeGroupsResponse
 
+try: # kafka-python 1.1.1
+    from kafka.protocol.commit import OffsetFetchRequest, GroupCoordinatorRequest, \
+        GroupCoordinatorResponse, OffsetFetchResponse
+except ImportError:
+    from kafka.protocol.commit import OffsetFetchRequest_v1 as OffsetFetchRequest, GroupCoordinatorRequest, \
+        GroupCoordinatorResponse, OffsetFetchResponse as OffsetFetchResponse
+
+from kafka.protocol.group import MemberAssignment
+from kafka.protocol.offset import OffsetRequest, OffsetResponse
+
+# For compatibility between kafka-python 1.0.2 and 1.1.1
+if isinstance(ListGroupsRequest, list):
+    _ListGroupsRequest = ListGroupsRequest[0]
+    _ListGroupsResponse = ListGroupsResponse[0]
+else:
+    _ListGroupsRequest = ListGroupsRequest
+    _ListGroupsResponse = ListGroupsResponse
+
+if isinstance(OffsetRequest, list):
+    _OffsetRequest = OffsetRequest[0]
+    _OffsetResponse = OffsetResponse[0]
+else:
+    _OffsetRequest = OffsetRequest
+    _OffsetResponse = OffsetResponse
+
+if isinstance(OffsetFetchRequest, list):
+    _OffsetFetchRequest = OffsetFetchRequest[1]
+    _OffsetFetchResponse = OffsetFetchResponse[1]
+else:
+    _OffsetFetchRequest = OffsetFetchRequest
+    _OffsetFetchResponse = OffsetFetchResponse
+
+if isinstance(GroupCoordinatorRequest, list):
+    _GroupCoordinatorRequest = GroupCoordinatorRequest[0]
+    _GroupCoordinatorResponse = GroupCoordinatorResponse[0]
+else:
+    _GroupCoordinatorRequest = GroupCoordinatorRequest
+    _GroupCoordinatorResponse = GroupCoordinatorResponse
+
+if isinstance(DescribeGroupsRequest, list):
+    _DescribeGroupsRequest = DescribeGroupsRequest[0]
+    _DescribeGroupsResponse = DescribeGroupsResponse[0]
+else:
+    _DescribeGroupsRequest = DescribeGroupsRequest
+    _DescribeGroupsResponse = DescribeGroupsResponse
 
 class KafkaConsumerLag:
 
@@ -15,13 +58,21 @@ class KafkaConsumerLag:
         self.client = KafkaClient(bootstrap_servers=bootstrap_servers)
         self.client.check_version()
 
-    def _send(self, broker_id, request):
+    def _send(self, broker_id, request, response_type=None):
 
         f = self.client.send(broker_id, request)
         response = self.client.poll(future=f)
 
-        if response and len(response) > 0:
-            return response[0]
+        if response_type:
+            if response and len(response) > 0:
+                for r in response:
+                    if isinstance(r, response_type):
+                        return r
+        else:
+            if response and len(response) > 0:
+                return response[0]
+
+        return None
 
     def check(self, group_topics=None, discovery=None):
         """
@@ -83,15 +134,16 @@ class KafkaConsumerLag:
         # Collect all active consumer groups
         if discovery:
             for broker in brokers:
-                response = self._send(broker.nodeId, ListGroupsRequest())
+                response = self._send(broker.nodeId, _ListGroupsRequest(), _ListGroupsResponse)
 
-                for group in response.groups:
-                    consumer_groups.add(group[0])
+                if response:
+                    for group in response.groups:
+                        consumer_groups.add(group[0])
 
         # Identify which broker is coordinating each consumer group
         for group in consumer_groups:
 
-            response = self._send(next(iter(brokers)).nodeId, GroupCoordinatorRequest(group))
+            response = self._send(next(iter(brokers)).nodeId, _GroupCoordinatorRequest(group), _GroupCoordinatorResponse)
 
             if response:
                 consumer_coordinator[group] = response.coordinator_id
@@ -113,7 +165,7 @@ class KafkaConsumerLag:
         # Identify group information and topics read by each consumer group
         for coordinator, consumers in coordinator_consumers.iteritems():
 
-            response = self._send(coordinator, DescribeGroupsRequest(consumers))
+            response = self._send(coordinator, _DescribeGroupsRequest(consumers), _DescribeGroupsResponse)
 
             for group in response.groups:
 
@@ -170,7 +222,7 @@ class KafkaConsumerLag:
                 topic_partitions.append(tp)
 
             # Request partition start offsets
-            response = self._send(broker, OffsetRequest(-1, topic_partitions))
+            response = self._send(broker, _OffsetRequest(-1, topic_partitions), _OffsetResponse)
 
             if response:
                 for offset in response.topics:
@@ -187,7 +239,7 @@ class KafkaConsumerLag:
                     tp[1][i] = (ptm[0], -1, 1)
 
             # Request partition end offsets
-            response = self._send(broker, OffsetRequest(-1, topic_partitions))
+            response = self._send(broker, _OffsetRequest(-1, topic_partitions), _OffsetResponse)
 
             if response:
                 for offset in response.topics:
@@ -228,7 +280,7 @@ class KafkaConsumerLag:
             for tp in request_partitions.iteritems():
                 topic_partitions.append(tp)
 
-            response = self._send(coordinator, OffsetFetchRequest_v1(group, topic_partitions))
+            response = self._send(coordinator, _OffsetFetchRequest(group, topic_partitions), _OffsetFetchResponse)
 
             if response:
                 for offset in response.topics:
